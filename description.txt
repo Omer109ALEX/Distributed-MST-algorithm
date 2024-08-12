@@ -1,0 +1,49 @@
+Maman15 project
+
+This project is using GHS algorithm to create MST in graph and send messages from every Node to Server.
+
+1  How to run this sample
+-----------------------------------------------------------------------------------
+
+ a) Run this project in GUI mode, and start by creating network nodes:
+    - Click on the `Build Graph` button and enter the number of nodes you want.
+      
+ b) Run the simulation. It will stop automatically when the algorithm finishes.
+
+ c) You can print sum of weights in graph, using the `Print sum of weights` button.
+
+ d) You can print a BFS scan of the fragments in every step in the algorithm, using the `Print Fragments` button. 
+  
+ e) After the algorithm finishes:
+ - You can send messages from chosen Node to the server , using the `Send message to server` button.
+ - You can print sum of weights in MST, using the `Print sum of weights in the MST` button.
+ - You can Export results to results file, using the `Export results to results file` button.
+ 
+ 
+
+2  Description
+-----------------------------------------------------------------------------------
+The nodes utilize the GHS algorithm to discover a minimum spanning tree (MST). The algorithm functions through a series of states:
+
+MWOE_SEND state: In this state, if the node is a root and its minimum weight outgoing edge (MWOE) has been selected,
+it connects to the other node's fragment through the MWOEChoiceMessage.
+
+LEADER_DISCOVERY state: In this state, the new root for each fragment is determined by selecting the maximum ID node that the other side
+of the MWOE connects to. The parent and children members are updated according to each node that selected an MWOE connected to the current node.
+
+FRAGMENT_ID_DISCOVERY state: In this state, each new fragment root broadcasts its ID as the new fragment ID.
+Additionally, every node that receives a new fragment ID updates its neighbors with the new fragment ID.
+
+MWOE_SEARCHING state: In this state, each node convergecasts the MWOE that connects it to another fragment's node.
+Each node waits for MWOE suggestions from all its children before selecting the minimal MWOE from the children's suggestions and its own MWOE.
+The node then forwards this MWOE to its parent. Furthermore, each node sends the number of nodes in the subtree it is the root of.
+The root of every fragment will eventually obtain the number of nodes in its fragment, and if it is n, the algorithm will be completed through broadcasting finish messages.
+
+MWOE_BROADCASTING state: In this state, the root broadcasts the chosen MWOE that goes out of the current fragment.
+Each node receives the message and updates its parentCandidate member if it is its MWOE.
+
+NEW_ROOT_BROADCASTING state: In this state, the node that the fragment's MWOE connects to becomes the new root of the fragment.
+It sends a FlipEdgeDirectionMessage to its parent, and each node that receives this message changes its parent to be
+the sender and forwards it to its old parent. This continues until the old root of the fragment is reached.
+
+If the algorithm is finished, switch to the FINISHED state. Otherwise, go back to the MWOE_SEND state.
